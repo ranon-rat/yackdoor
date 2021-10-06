@@ -2,31 +2,61 @@ package controller
 
 import (
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/labstack/echo/v4"
+	"golang.org/x/net/websocket"
 )
 
-// podria enviar simplemente un string con el comando
+// YOU ONLY CAN USE THIS WITH ONLY 1 CLIENT
+
 func GetCommands(c echo.Context) error {
-
-	c.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationMsgpack)
-	id := c.Request().Header.Get("id")
-
+	fmt.Println(c.Request().URL)
+	id := c.QueryParam("id")         //later i will change this to the headers but for now it works
+	fmt.Println(c.Request().URL, id) // its just for see the id of the client
 	_, exist := commands[id]
 
 	if !exist {
 		commands[id] = make(chan string)
 	}
-	for {
-		command := <-commands[id]
+	websocket.Handler(func(conn *websocket.Conn) {
 
-		if _, err := fmt.Fprintln(c.Response(), command); err != nil {
-			delete(commands, id)
-			return err
+		go func() {
+			// this is for check if it still connected
+			for {
+				if err := websocket.Message.Send(conn, "you still there?"); err != nil {
+					delete(commands, id)
+					return
+				}
+				time.Sleep(time.Minute * 10)
+			}
+		}()
+		go func() {
+			for {
+
+				msg := ""
+
+				err := websocket.Message.Receive(conn, &msg)
+				if err != nil {
+					log.Println(msg)
+					delete(commands, id)
+					return
+				}
+
+				fmt.Println(msg)
+			}
+		}()
+		for {
+			command := <-commands[id]
+			log.Println(command)
+			if err := websocket.Message.Send(conn, command); err != nil {
+				delete(commands, id)
+				return
+			}
+
 		}
-		time.Sleep(time.Second)
-		c.Response().Flush()
-	}
 
+	}).ServeHTTP(c.Response(), c.Request())
+	return nil
 }
