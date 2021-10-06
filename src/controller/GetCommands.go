@@ -28,6 +28,7 @@ func GetCommands(c echo.Context) error {
 			for {
 				if err := websocket.Message.Send(conn, "you still there?"); err != nil {
 					delete(commands, id)
+					delete(outputs, id)
 					return
 				}
 				time.Sleep(time.Minute * 10)
@@ -43,6 +44,7 @@ func GetCommands(c echo.Context) error {
 					log.Println(msg)
 
 					delete(commands, id)
+					delete(outputs, id)
 					return
 				}
 				log.Println(msg)
@@ -54,6 +56,7 @@ func GetCommands(c echo.Context) error {
 			log.Println(command)
 			if err := websocket.Message.Send(conn, command); err != nil {
 				delete(commands, id)
+				delete(outputs, id)
 				return
 			}
 
