@@ -19,6 +19,7 @@ func GetCommands(c echo.Context) error {
 
 	if !exist {
 		commands[id] = make(chan string)
+		outputs[id] = make(chan string)
 	}
 	websocket.Handler(func(conn *websocket.Conn) {
 
@@ -40,11 +41,12 @@ func GetCommands(c echo.Context) error {
 				err := websocket.Message.Receive(conn, &msg)
 				if err != nil {
 					log.Println(msg)
+
 					delete(commands, id)
 					return
 				}
-
-				fmt.Println(msg)
+				log.Println(msg)
+				outputs[id] <- msg
 			}
 		}()
 		for {
