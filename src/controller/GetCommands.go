@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"fmt"
 	"log"
 	"time"
 
@@ -12,12 +11,11 @@ import (
 // YOU ONLY CAN USE THIS WITH ONLY 1 CLIENT
 
 func GetCommands(c echo.Context) error {
-	fmt.Println(c.Request().URL)
-	id := c.QueryParam("id")         //later i will change this to the headers but for now it works
-	fmt.Println(c.Request().URL, id) // its just for see the id of the client
-	_, exist := commands[id]
 
-	if !exist {
+	id := c.Request().Header.Get("id") //later i will change this to the headers but for now it works
+	// its just for see the id of the client
+
+	if _, exist := commands[id]; !exist {
 		commands[id] = make(chan string)
 		outputs[id] = make(chan string)
 	}
@@ -27,8 +25,7 @@ func GetCommands(c echo.Context) error {
 			// this is for check if it still connected
 			for {
 				if err := websocket.Message.Send(conn, "you still there?"); err != nil {
-					delete(commands, id)
-					delete(outputs, id)
+					deleteThisPlease()
 					return
 				}
 				time.Sleep(time.Minute * 10)
@@ -38,13 +35,10 @@ func GetCommands(c echo.Context) error {
 			for {
 
 				msg := ""
-
-				err := websocket.Message.Receive(conn, &msg)
-				if err != nil {
+				if err := websocket.Message.Receive(conn, &msg); err != nil {
 					log.Println(msg)
 
-					delete(commands, id)
-					delete(outputs, id)
+					deleteThisPlease()
 					return
 				}
 
@@ -55,8 +49,7 @@ func GetCommands(c echo.Context) error {
 			command := <-commands[id]
 			log.Println(command)
 			if err := websocket.Message.Send(conn, command); err != nil {
-				delete(commands, id)
-				delete(outputs, id)
+				deleteThisPlease()
 				return
 			}
 
@@ -64,4 +57,9 @@ func GetCommands(c echo.Context) error {
 
 	}).ServeHTTP(c.Response(), c.Request())
 	return nil
+}
+
+func deleteThisPlease() {
+	delete(commands, "id")
+	delete(outputs, "id")
 }
