@@ -47,7 +47,7 @@ func GetCommands(c echo.Context) error {
 					delete(outputs, id)
 					return
 				}
-				log.Println(msg)
+
 				outputs[id] <- msg
 			}
 		}()
