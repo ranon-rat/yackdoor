@@ -19,6 +19,7 @@ func UploadCommand(c echo.Context) error {
 
 	if _, exist := commands[id]; !exist {
 		c.String(http.StatusNotFound, "sorry not avaible")
+		return nil
 	}
 	commands[id] <- asd
 
