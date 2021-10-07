@@ -2,7 +2,7 @@ package controller
 
 import (
 	"bytes"
-	"fmt"
+	"io"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -22,7 +22,8 @@ func UploadCommand(c echo.Context) error {
 	c.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationMsgpack)
 	for {
 		output := <-outputs[id]
-		if _, err := fmt.Fprintln(c.Response(), output); err != nil {
+
+		if _, err := io.Copy(c.Response(), bytes.NewBufferString(output)); err != nil {
 			commands[id] <- "break"
 			return err
 		}
