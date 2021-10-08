@@ -34,6 +34,7 @@ func ExecuteCommand() {
 		cmd.Stderr = &(b)
 
 		cmd.Start()
+		exited <- true
 
 	}
 
@@ -44,7 +45,13 @@ func GetOutAndErr(conn *websocket.Conn) {
 	for {
 		if b.String() != "" {
 
-			json.NewEncoder(conn).Encode(api.ApiOutput{ForWho: "idk", Output: b.String()})
+			log.Println(b.String())
+
+			json.NewEncoder(conn).Encode(api.ApiOutput{
+				ForWho: "idk",
+				Output: b.String(),
+				Exited: <-exited,
+			})
 			b.Reset()
 
 		}
@@ -55,8 +62,10 @@ func KillProcess() {
 	for {
 		<-secondCommand
 		log.Println("okay , wait please")
+		exited <- true
 		if err := cmd.Process.Kill(); err != nil {
 			log.Println(err)
+
 		}
 
 	}

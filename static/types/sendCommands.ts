@@ -19,10 +19,11 @@ input?.addEventListener("keyup", async (e) => {
             };
             const string=new TextDecoder().decode(value)
             console.log(string)
-            
+            try{
            output!.innerText+=JSON.parse(string)["output"]+"\n"
           if (output!.innerText.split("\n")!.length>20){
-           output!.innerText=output!.innerText.split("\n").slice(-20).join("\n")}
+           output!.innerText=output!.innerText.split("\n").slice(-19).join("\n")}}
+            catch{}
         }, 100)
 
     }
