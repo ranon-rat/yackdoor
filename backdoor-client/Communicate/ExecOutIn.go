@@ -32,9 +32,9 @@ func ExecuteCommand() {
 
 		cmd.Stdout = &(b)
 		cmd.Stderr = &(b)
-
 		cmd.Start()
-		exited <- true
+
+		exitedChan <- true
 
 	}
 
@@ -43,14 +43,21 @@ func ExecuteCommand() {
 func GetOutAndErr(conn *websocket.Conn) {
 
 	for {
+
 		if b.String() != "" {
+			var exited bool
+			select {
 
-			log.Println(b.String())
+			case <-exitedChan:
+				exited = true
+			default:
+				exited = false
 
+			}
 			json.NewEncoder(conn).Encode(api.ApiOutput{
 				ForWho: "idk",
 				Output: b.String(),
-				Exited: <-exited,
+				Exited: exited,
 			})
 			b.Reset()
 
@@ -61,8 +68,8 @@ func KillProcess() {
 
 	for {
 		<-secondCommand
+		exitedChan <- true
 		log.Println("okay , wait please")
-		exited <- true
 		if err := cmd.Process.Kill(); err != nil {
 			log.Println(err)
 

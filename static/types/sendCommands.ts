@@ -1,29 +1,31 @@
 const input: HTMLInputElement = document.getElementById("input") as HTMLInputElement;
-const output=document.getElementById("output") ;
-output!.innerText=""
+const output = document.getElementById("output");
+output!.innerText = ""
 input?.addEventListener("keyup", async (e) => {
-    
+
     if (e.key == "Enter") {
 
         const response = await fetch("", {
             method: "POST",
             body: input?.value
-        }).catch(e=>null)
-        output!.innerText=input.value+"\n"
+        }).catch(e => null)
+        output!.innerText = input.value + "\n"
         input!.value = "";
-        
+        if (output!.innerText.split("\n")!.length > 20) {
+            output!.innerText = output!.innerText.split("\n").slice(-19).join("\n")
+        }
         const reader = response!.body!.getReader();
         var gayInterval = setInterval(async function () {
             const { value, done } = await reader.read();
-            if (done) {clearInterval(gayInterval)
+            if (done) {
+                clearInterval(gayInterval)
             };
-            const string=new TextDecoder().decode(value)
+            const string = new TextDecoder().decode(value)
             console.log(string)
-            try{
-           output!.innerText+=JSON.parse(string)["output"]+"\n"
-          if (output!.innerText.split("\n")!.length>20){
-           output!.innerText=output!.innerText.split("\n").slice(-19).join("\n")}}
-            catch{}
+            try {
+                output!.innerText += JSON.parse(string)["output"] + "\n"
+            }
+            catch { }
         }, 100)
 
     }

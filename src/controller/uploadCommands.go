@@ -15,7 +15,6 @@ func UploadCommand(c echo.Context) error {
 	c.Response().WriteHeader(http.StatusOK)
 	id := c.QueryParam("id")
 	buf := new(bytes.Buffer)
-
 	buf.ReadFrom(c.Request().Body)
 	asd := buf.String()
 
@@ -29,14 +28,19 @@ func UploadCommand(c echo.Context) error {
 		output := <-outputs[id]
 		var jsonApi api.ApiOutput
 		json.Unmarshal([]byte(output), &jsonApi)
-		fmt.Println(jsonApi)
-		if _, err := fmt.Fprintln(c.Response(), (output)); err != nil || jsonApi.Exited {
+		fmt.Println(jsonApi, output)
+
+		if _, err := fmt.Fprintln(c.Response(), (output)); err != nil {
 			commands[id] <- "break"
 			delete(outputs, id)
 			return err
 		}
+		if jsonApi.Exited {
+			break
+		}
 
 		c.Response().Flush()
 	}
+	return nil
 
 }
