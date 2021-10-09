@@ -19,6 +19,7 @@ func GetCommands(c echo.Context) error {
 		commands[id] = make(chan string)
 		outputs[id] = make(chan string)
 	}
+	log.Println(id)
 	websocket.Handler(func(conn *websocket.Conn) {
 
 		go func() {
@@ -41,6 +42,7 @@ func GetCommands(c echo.Context) error {
 					deleteThisPlease()
 					return
 				}
+				log.Println(msg, id)
 
 				outputs[id] <- msg
 			}
@@ -60,6 +62,6 @@ func GetCommands(c echo.Context) error {
 }
 
 func deleteThisPlease() {
-	delete(commands, "id")
+
 	delete(outputs, "id")
 }

@@ -1,32 +1,24 @@
 const input: HTMLInputElement = document.getElementById("input") as HTMLInputElement;
 const output = document.getElementById("output");
+const ws = new WebSocket(
+    `${window.location.href.includes("https")?"wss":"ws"}://${window.location.host}/infectClientWS${window.location.search}`
+  );
+  
 output!.innerText = ""
+
 input?.addEventListener("keyup", async (e) => {
-
     if (e.key == "Enter") {
-
-        const response = await fetch("", {
-            method: "POST",
-            body: input?.value
-        }).catch(e => null)
+        ws.send(input.value);
         output!.innerText = input.value + "\n"
-        input!.value = "";
-        if (output!.innerText.split("\n")!.length > 20) {
-            output!.innerText = output!.innerText.split("\n").slice(-19).join("\n")
-        }
-        const reader = response!.body!.getReader();
-        var gayInterval = setInterval(async function () {
-            const { value, done } = await reader.read();
-            if (done) {
-                clearInterval(gayInterval)
-            };
-            const string = new TextDecoder().decode(value)
-            console.log(string)
-            try {
-                output!.innerText += JSON.parse(string)["output"] + "\n"
-            }
-            catch { }
-        }, 100)
+        input!.value = "";         
 
     }
 })
+ws.onmessage = (e) => {
+    console.log(e.data)
+    
+    output!.innerText += "\n"+JSON.parse( e.data)["output"] 
+    if (output!.innerText.split("\n")!.length > 20) {
+        output!.innerText = output!.innerText.split("\n").slice(-20).join("\n")
+    }
+}

@@ -34,8 +34,6 @@ func ExecuteCommand() {
 		cmd.Stderr = &(b)
 		cmd.Start()
 
-		exitedChan <- true
-
 	}
 
 }
@@ -45,20 +43,14 @@ func GetOutAndErr(conn *websocket.Conn) {
 	for {
 
 		if b.String() != "" {
-			var exited bool
-			select {
-
-			case <-exitedChan:
-				exited = true
-			default:
-				exited = false
-
-			}
-			json.NewEncoder(conn).Encode(api.ApiOutput{
+			log.Println(b.String())
+			if err := json.NewEncoder(conn).Encode(api.ApiOutput{
 				ForWho: "idk",
 				Output: b.String(),
-				Exited: exited,
-			})
+			}); err != nil {
+				log.Println(err)
+
+			}
 			b.Reset()
 
 		}
@@ -68,12 +60,12 @@ func KillProcess() {
 
 	for {
 		<-secondCommand
-		exitedChan <- true
+
 		log.Println("okay , wait please")
+
 		if err := cmd.Process.Kill(); err != nil {
 			log.Println(err)
 
 		}
-
 	}
 }

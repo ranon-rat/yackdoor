@@ -16,5 +16,4 @@ var (
 	secondCommand   = make(chan string)
 	b               bytes.Buffer
 	cmd             *exec.Cmd
-	exitedChan      = make(chan bool)
 )

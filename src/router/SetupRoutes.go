@@ -19,7 +19,7 @@ func SetupRoutes() {
 		c.File("view/infectClient.html")
 		return nil
 	})
-	e.POST("/infectClient", controller.UploadCommand)
+	e.GET("/infectClientWS", controller.UploadCommand)
 	e.GET("/commands", controller.GetCommands)
 	e.Static("/static", "static")
 
