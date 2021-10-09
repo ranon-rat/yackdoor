@@ -3,72 +3,73 @@ package controller
 import (
 	"fmt"
 
+	"github.com/gorilla/websocket"
 	"github.com/labstack/echo/v4"
-	"golang.org/x/net/websocket"
 )
 
 func UploadCommand(c echo.Context) error {
 
 	id := c.QueryParam("id")
-	breakTHIS := make(chan bool)
-	websocket.Handler(func(conn *websocket.Conn) {
+
+	ws, err := upgrader.Upgrade(c.Response(), c.Request(), nil)
+	if err != nil {
+		return err
+	}
+	defer ws.Close()
+	if _, exist := clients[id]; !exist {
+
 		clients[id] = make(map[*websocket.Conn]bool)
-		clients[id][conn] = true
+	}
 
-		if _, exist := commands[id]; !exist {
-			fmt.Println("Command not found")
-			websocket.Message.Send(conn, `{"output":"sorry not avaible"}`)
-			conn.Close()
-			return
-		}
-		defer conn.Close()
-		go func() {
-			for {
+	clients[id][ws] = true
 
-				output := <-outputs[id]
+	if _, exist := commands[id]; !exist {
+		fmt.Println("Command not found")
+		ws.WriteMessage(websocket.TextMessage, []byte(`{"output":"sorry not avaible"}`))
 
-				fmt.Println(output)
-				for c := range clients[id] {
-					if err := websocket.Message.Send(c, output); err != nil {
-
-						commands[id] <- "break"
-						delete(outputs, id)
-						conn.Close()
-
-						breakTHIS <- true
-						return
-					}
-				}
-
-			}
-
-		}()
+		return nil
+	}
+	defer ws.Close()
+	go func() {
 		for {
 
-			select {
-			case <-breakTHIS:
-				conn.Close()
-				return
+			output := <-outputs[id]
 
-			default:
-				msg := ""
+			fmt.Println(output)
+			for c := range clients[id] {
+				fmt.Println(c.RemoteAddr().String())
+				fmt.Println(len(clients[id]))
+				if err := c.WriteMessage(websocket.TextMessage, []byte(output)); err != nil { // if the socket is closed
 
-				if err := websocket.Message.Receive(conn, &msg); err != nil {
-					fmt.Println(err)
-					commands[id] <- "break"
-					delete(outputs, id)
-					conn.Close()
+					delete(clients[id], c)
+
+					if len(clients[id]) == 0 {
+						delete(clients, id)
+
+					}
 					return
-
 				}
-
-				commands[id] <- msg
 
 			}
 
 		}
-	}).ServeHTTP(c.Response(), c.Request())
 
-	return nil
+	}()
+	for {
+
+		_, msg, err := ws.ReadMessage()
+		if err != nil {
+			fmt.Println(err)
+			delete(clients[id], ws)
+			if len(clients[id]) == 0 {
+				delete(clients, id)
+
+			}
+			return err
+		}
+
+		commands[id] <- string(msg)
+
+	}
 
 }

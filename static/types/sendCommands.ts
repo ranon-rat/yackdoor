@@ -9,7 +9,7 @@ output!.innerText = ""
 input?.addEventListener("keyup", async (e) => {
     if (e.key == "Enter") {
         ws.send(input.value);
-        output!.innerText = input.value + "\n"
+        output!.innerText += "\n"+input.value 
         input!.value = "";         
 
     }

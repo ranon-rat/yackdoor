@@ -43,14 +43,11 @@ func GetOutAndErr(conn *websocket.Conn) {
 	for {
 
 		if b.String() != "" {
-			log.Println(b.String())
-			if err := json.NewEncoder(conn).Encode(api.ApiOutput{
+
+			json.NewEncoder(conn).Encode(api.ApiOutput{
 				ForWho: "idk",
 				Output: b.String(),
-			}); err != nil {
-				log.Println(err)
-
-			}
+			})
 			b.Reset()
 
 		}
