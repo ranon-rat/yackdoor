@@ -42,6 +42,7 @@ idk why this is happening , help
 
 - [x] send the output
 - [ ] i need to stop creating a new command when i send something , i need to change it to something like the terminal of replit 
+- [ ] database made in postgresql 
 - [ ] create new cmds for every user (map[name]exec.Command) 
 - [ ] create new outputs for every user (map[name]bytes.buffer)
 - [ ] login and register
