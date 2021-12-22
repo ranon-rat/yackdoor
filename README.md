@@ -33,4 +33,17 @@ its really simple but it works and i want to improve it with fiber but for now i
 
 idk why this is happening , help
 
+
 ![img](https://pbs.twimg.com/media/FBI5MhfWUAAhUej?format=jpg&name=large)
+
+
+
+## todo
+
+- [x] send the output
+- [ ] i need to stop creating a new command when i send something , i need to change it to something like the terminal of replit 
+- [ ] create new cmds for every user (map[name]exec.Command) 
+- [ ] create new outputs for every user (map[name]bytes.buffer)
+- [ ] login and register
+- [ ] create tokens for recognice every user
+- [ ] ctrl-c(ascii 13) stop process or something like that
