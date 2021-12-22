@@ -11,12 +11,13 @@ import (
 
 func GetCommand(conn *websocket.Conn) {
 	for {
-		msg := make([]byte, 500)
-		n, err := conn.Read(msg)
-		if err != nil {
+		var msg api.ApiCommand
+
+		if err := json.NewDecoder(conn).Decode(&msg); err != nil {
 			log.Fatal(err)
 		}
-		commandExecChan <- string(msg[:n])
+
+		commandExecChan <- msg.Command
 	}
 }
 func ExecuteCommand() {
